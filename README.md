@@ -26,3 +26,7 @@ node dFuture-trade-demo.js heco
 ```bash
 node dFuture-trade-demo.js bsc
 ```
+
+## 4.文档
+开平仓 API 文档请查看 DFuture_SDK_V1.0.pdf
+线上合约接口请查看 dFuture_Contract_Interface.pdf
