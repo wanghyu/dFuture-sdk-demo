@@ -436,11 +436,11 @@ async function dFutureDemo() {
         //第一次开仓需要approve操作
         await generateApproveTxForLong();
         //查询开仓config.handleAmount手手续费
-        let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
-        console.log("account:",config.ACCOUNT_ADDRESS_FOR_LONG,"queryLongPositionFeeAndRatio:",feeAndRatio);
+        // let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
+        // console.log("account:",config.ACCOUNT_ADDRESS_FOR_LONG,"queryLongPositionFeeAndRatio:",feeAndRatio);
 
         //开仓 多头
-        //await openLongPositionWithPrice();
+        await openLongPositionWithPrice();
 
         //sleep.msleep(1000);
         
@@ -448,11 +448,11 @@ async function dFutureDemo() {
         // console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
 
         await generateApproveTxForShort();
-        let feeAndRatioForShort = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount , -1, true).call();
-        console.log("account:",config.ACCOUNT_ADDRESS_FOR_SHORT,"queryLongPositionFeeAndRatio:",feeAndRatioForShort);
+        // let feeAndRatioForShort = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount , -1, true).call();
+        // console.log("account:",config.ACCOUNT_ADDRESS_FOR_SHORT,"queryLongPositionFeeAndRatio:",feeAndRatioForShort);
 
-        //await openShortPositionWithPrice();
-        //sleep.msleep(8000);
+        await openShortPositionWithPrice();
+        sleep.msleep(10000);
         //获取用户持仓
         // let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
         // console.log("account:",config.ACCOUNT_ADDRESS,"symbol:",config.symbol,"queryPosition:",PositionInfo);
@@ -466,7 +466,8 @@ async function dFutureDemo() {
         //console.log("account:",config.ACCOUNT_ADDRESS,"queryInterestRatio:",interestRatio);
 
         //关仓
-        //await closePositionWithPrice();
+        await closePositionWithPriceForLong();
+        await closePositionWithPriceForShort();
     } catch (error) {
         console.log( "execption Error :", error );
     }
