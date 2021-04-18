@@ -359,15 +359,15 @@ async function dFutureDemo() {
         //第一次开仓需要approve操作
         await generateApproveTx();
         //查询开仓config.handleAmount手手续费
-        let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
-        console.log("account:",config.ACCOUNT_ADDRESS,"queryLongPositionFeeAndRatio:",feeAndRatio);
+        // let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
+        // console.log("account:",config.ACCOUNT_ADDRESS,"queryLongPositionFeeAndRatio:",feeAndRatio);
 
         //开仓 多头
         await openLongPositionWithPrice();
         
-        let feeAndRatio1 = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
-        console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
-        await openShortPositionWithPrice();
+        // let feeAndRatio1 = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
+        // console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
+        //await openShortPositionWithPrice();
         sleep.msleep(8000);
         //获取用户持仓
         //let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
@@ -382,7 +382,7 @@ async function dFutureDemo() {
         //console.log("account:",config.ACCOUNT_ADDRESS,"queryInterestRatio:",interestRatio);
 
         //关仓
-        await closePositionWithPrice();
+        //await closePositionWithPrice();
     } catch (error) {
         console.log( "execption Error :", error );
     }
