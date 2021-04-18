@@ -27,8 +27,13 @@ let PROVIDER_URL = config.PROVIDER_URL
 
 const GAS_LIMIT = Web3.utils.toHex(5000000) //500万
 let CURRENT_GAS_PRICE = 40000000000;
-const PRIVATE_KEY = "0x" + config.PRIVATE_KEY
-let ORDER_DIRECTION = 1; //1 看多，-1 看空
+
+const PRIVATE_KEY_FOR_LONG = "0x" + config.PRIVATE_KEY_FOR_LONG
+const PRIVATE_KEY_FOR_SHORT = "0x" + config.PRIVATE_KEY_FOR_SHORT
+
+let ORDER_DIRECTION_FOR_LONG = 1; //1 看多，-1 看空
+let ORDER_DIRECTION_FOR_SHORT = -1; //1 看多，-1 看空
+
 var symbol = Web3.utils.fromAscii;
 
 const ABI_FILE_PATH = curCommonPath + "FuturePerpetual.json"
@@ -41,10 +46,15 @@ let usdt_contract = new web3_rops.eth.Contract(usdt_abi, USDT_ADDRESS);
 var parsed = JSON.parse(fs.readFileSync(ABI_FILE_PATH));
 var abi = parsed.abi
 let future_contract = new web3_rops.eth.Contract(abi, FUTURE_ADDRESS);
+
 //私钥转换为账号
-const account = web3_rops.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
+const account_for_long = web3_rops.eth.accounts.privateKeyToAccount(PRIVATE_KEY_FOR_LONG);
+const account_for_short = web3_rops.eth.accounts.privateKeyToAccount(PRIVATE_KEY_FOR_SHORT);
+
 //私钥对应的账号地地址
-const account_address = account.address
+const account_address_for_long = account_for_long.address
+const account_address_for_short = account_address_for_short.address;
+
 let last_openposition_status = true;
 let nonce_number = 0;
 let lastInitWeb3Time = 0;
@@ -99,12 +109,13 @@ async function deadlineOfOrderMaker(nonce_increase) {
 /**
  * 发送rpc交易
  */
- const sendRpcTrx = async (httpEndpoint, params ) => {
+ const sendRpcTrx = async (httpEndpoint, params) => {
     try {
 
         let curTimestamp = Date.now();
         let accessKey = config.ACCESS_KEY
         let accessSk = config.ACCESS_SK
+
         var content = accessKey+"&"+curTimestamp.toString()+"&"+accessSk;
         var result = crypto.createHash('md5').update(content).digest("hex")
         console.log("token content:",content,"md5:",result);
@@ -132,12 +143,14 @@ async function deadlineOfOrderMaker(nonce_increase) {
             //     }
             //     sleep.msleep(1000);
             // }
+        } else {
+            console.log("======================================== sendRpcTrx is ERROR ===================================");
         }
-
     } catch (e) {
         console.log("sendRpcTrx error,",e);
     }
 }
+
 
 /**
  * 开仓
@@ -192,14 +205,14 @@ async function openLongPositionWithPrice() {
     console.log("======= open long position========");
     try {
         // ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
-        const ordermaker = config.ACCOUNT_ADDRESS;
-        const makerPrivateKey = "0x" + config.PRIVATE_KEY
-        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS).call();
+        const ordermaker = config.ACCOUNT_ADDRESS_FOR_LONG;
+        const makerPrivateKey = "0x" + config.PRIVATE_KEY_FOR_LONG
+        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS_FOR_LONG).call();
         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
         let openOrder = new OpenOrder(
           utils.formatBytes32String(config.symbol),
           config.handleLongAmount,
-          1, //ORDER_DIRECTION
+          ORDER_DIRECTION_FOR_LONG , //ORDER_DIRECTION
           config.ACCEPTABLE_PRICE,
           config.approveUsdt.toString() + e18str,
           config.PARAENT_ADDRESS,
@@ -239,14 +252,14 @@ async function openShortPositionWithPrice() {
     console.log("======= open short position========");
     try {
         //ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
-        const ordermaker = config.ACCOUNT_ADDRESS;
-        const makerPrivateKey = "0x" + config.PRIVATE_KEY
-        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS).call();
+        const ordermaker = config.ACCOUNT_ADDRESS_FOR_SHORT;
+        const makerPrivateKey = "0x" + config.PRIVATE_KEY_FOR_SHORT
+        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS_FOR_SHORT).call();
         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
         let openOrder = new OpenOrder(
           utils.formatBytes32String(config.symbol),
           config.handleShortAmount,
-          -1,
+          ORDER_DIRECTION_FOR_SHORT,
           config.ACCEPTABLE_PRICE,
           config.approveUsdt.toString() + e18str,
           config.PARAENT_ADDRESS,
@@ -281,15 +294,16 @@ async function openShortPositionWithPrice() {
 /**
  * 关仓
  */
-async function closePositionWithPrice(){
+async function closePositionWithPriceForLong(){
+    console.log("\n====== READY TO CLOSE LONG POSITION ====\n");
     try {
-        const ordermaker = config.ACCOUNT_ADDRESS;
-        const makerPrivateKey = "0x" + config.PRIVATE_KEY
-        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS).call();
+        const ordermaker = config.ACCOUNT_ADDRESS_FOR_LONG;
+        const makerPrivateKey = "0x" + config.PRIVATE_KEY_FOR_LONG
+        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS_FOR_LONG).call();
         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
         let closeOrder = new CloseOrder(
             utils.formatBytes32String(config.symbol),
-            config.handleShortAmount - config.handleLongAmount,
+            config.handleLongAmount,
             0,
             deadline,
             ordermaker,
@@ -309,23 +323,58 @@ async function closePositionWithPrice(){
             "v": args[6]
         };
         await sendRpcTrx(config.ClosePositionUrl, params);
-
-
     } catch (error) {
         console.log("closePositionWithPrice error:",error);
     }
 
 }
+
+async function closePositionWithPriceForShort(){
+    console.log("\n====== READY TO CLOSE SHORT POSITION ====\n");
+    try {
+        const ordermaker = config.ACCOUNT_ADDRESS_FOR_SHORT;
+        const makerPrivateKey = "0x" + config.PRIVATE_KEY_FOR_SHORT
+        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS_FOR_SHORT).call();
+        let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
+        let closeOrder = new CloseOrder(
+            utils.formatBytes32String(config.symbol),
+            config.handleShortAmount,
+            0,
+            deadline,
+            ordermaker,
+            config.GAS_LEVEL
+        );
+        let args = await closeOrder.toArgs(FUTURE_ADDRESS, makerPrivateKey, web3_rops, config.CHAIN_ID);
+        console.log("=== Close LongPosition args:",args);
+        const params = {
+            "acceptablePrice": args[2],
+            "amount": args[1],
+            "deadline": args[3],
+            "gasLevel": args[5],
+            "maker": args[4],
+            "r": args[7],
+            "s": args[8],
+            "symbol": args[0],
+            "v": args[6]
+        };
+        await sendRpcTrx(config.ClosePositionUrl, params);
+    } catch (error) {
+        console.log("closePositionWithPrice error:",error);
+    }
+
+}
+
+
 /**
  * 构建交易
  * @returns {Promise<void>}
  */
-async function generateApproveTx() {
+async function generateApproveTxForLong() {
    try {
-      console.log("start generateApproveTx account_address: ",account_address)
+      console.log("\n===== start generateApproveTx For LONG account_address: ",account_address_for_long, " =====\n")
       //获取nonce,使用本地私钥发送交易
       await getCurGasPrice();
-      nonce_number = await web3_rops.eth.getTransactionCount(account_address).then();
+      nonce_number = await web3_rops.eth.getTransactionCount(account_address_for_long).then();
       let current_nonce = nonce_number;
       console.log("generateApproveTx nonce: ",current_nonce)
       const txParams = {
@@ -336,17 +385,45 @@ async function generateApproveTx() {
                data: usdt_contract.methods.approve(FUTURE_ADDRESS, "1000000000" + e18str ).encodeABI(),
          }
       const tx = new EthereumTx(txParams)
-      tx.sign(Buffer.from(PRIVATE_KEY.slice(2), 'hex'))
+      tx.sign(Buffer.from(PRIVATE_KEY_FOR_LONG.slice(2), 'hex'))
       const serializedTx = await tx.serialize()
-      await web3_rops.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).once('transactionHash', function(hash){
-        console.log("generateApproveTx transaction exec success, hash:",hash," current_nonce:",current_nonce);
-    })
+    //   await web3_rops.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).once('transactionHash', function(hash){
+    //     console.log("generateApproveTx transaction exec success, hash:",hash," current_nonce:",current_nonce);
+    // })
       return true;
    } catch (error) {
       console.log("sendSignedTransaction generateApproveTx error:",error);
    }
    return false;
 }
+
+async function generateApproveTxForShort() {
+    try {
+       console.log("\n===== start generateApproveTx For SHORT account_address: ",account_address_for_short, " =====\n")
+       //获取nonce,使用本地私钥发送交易
+       await getCurGasPrice();
+       nonce_number = await web3_rops.eth.getTransactionCount(account_address_for_short).then();
+       let current_nonce = nonce_number;
+       console.log("generateApproveTx nonce: ",current_nonce)
+       const txParams = {
+                nonce: current_nonce,
+                gasPrice: Web3.utils.toHex(CURRENT_GAS_PRICE),
+                gasLimit: GAS_LIMIT,
+                to: USDT_ADDRESS,
+                data: usdt_contract.methods.approve(FUTURE_ADDRESS, "1000000000" + e18str ).encodeABI(),
+          }
+       const tx = new EthereumTx(txParams)
+       tx.sign(Buffer.from(PRIVATE_KEY_FOR_SHORT.slice(2), 'hex'))
+       const serializedTx = await tx.serialize()
+    //    await web3_rops.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).once('transactionHash', function(hash){
+    //      console.log("generateApproveTx transaction exec success, hash:",hash," current_nonce:",current_nonce);
+    //  })
+       return true;
+    } catch (error) {
+       console.log("sendSignedTransaction generateApproveTx error:",error);
+    }
+    return false;
+ }
 
 
  /**
@@ -357,22 +434,22 @@ async function dFutureDemo() {
     try {
         await initWeb3Contract();
         //第一次开仓需要approve操作
-        await generateApproveTx();
+        await generateApproveTxForLong();
         //查询开仓config.handleAmount手手续费
         // let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
         // console.log("account:",config.ACCOUNT_ADDRESS,"queryLongPositionFeeAndRatio:",feeAndRatio);
 
         //开仓 多头
-        await openLongPositionWithPrice();
+        //await openLongPositionWithPrice();
 
-        sleep.msleep(1000);
+        //sleep.msleep(1000);
         
         // let feeAndRatio1 = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
         // console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
 
-        await generateApproveTx();
-        await openShortPositionWithPrice();
-        sleep.msleep(8000);
+        await generateApproveTxForShort();
+        //await openShortPositionWithPrice();
+        //sleep.msleep(8000);
         //获取用户持仓
         //let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
         //console.log("account:",config.ACCOUNT_ADDRESS,"symbol:",config.symbol,"queryPosition:",PositionInfo);
