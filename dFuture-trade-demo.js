@@ -435,6 +435,7 @@ async function dFutureDemo() {
         await initWeb3Contract();
         //第一次开仓需要approve操作
         await generateApproveTxForLong();
+        await generateApproveTxForShort();
         //查询开仓config.handleAmount手手续费
         // let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
         // console.log("account:",config.ACCOUNT_ADDRESS_FOR_LONG,"queryLongPositionFeeAndRatio:",feeAndRatio);
@@ -442,12 +443,13 @@ async function dFutureDemo() {
         //开仓 多头
         await openLongPositionWithPrice();
 
+
         //sleep.msleep(1000);
         
         // let feeAndRatio1 = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
         // console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
 
-        await generateApproveTxForShort();
+
         // let feeAndRatioForShort = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount , -1, true).call();
         // console.log("account:",config.ACCOUNT_ADDRESS_FOR_SHORT,"queryLongPositionFeeAndRatio:",feeAndRatioForShort);
 
