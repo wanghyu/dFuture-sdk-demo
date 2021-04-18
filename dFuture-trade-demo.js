@@ -120,17 +120,18 @@ async function deadlineOfOrderMaker(nonce_increase) {
         let res = await axios.post(httpEndpoint, params,headersMap);
         console.log("sendRpcTrx resdata:",res["data"]);
         if( res["data"]["code"] ==  200){
-            let retryCnt = 10;
-            while(retryCnt > 0 ){
-                retryCnt -= 1;
-                let receipt = await web3_rops.eth.getTransactionReceipt(res["data"]["data"]["txHash"]);
-                console.log("retry query hash:",res["data"]["data"]["txHash"]," retryCnt:",retryCnt);
-                if( receipt != null ) {
-                    console.log("retry query hash:",res["data"]["data"]["txHash"]," exec success ");
-                    break;
-                }
-                sleep.msleep(1000);
-            }
+            console.log("=========== sendRpcTrx is success! ===============");
+            // let retryCnt = 10;
+            // while(retryCnt > 0 ){
+            //     retryCnt -= 1;
+            //     let receipt = await web3_rops.eth.getTransactionReceipt(res["data"]["data"]["txHash"]);
+            //     console.log("retry query hash:",res["data"]["data"]["txHash"]," retryCnt:",retryCnt);
+            //     if( receipt != null ) {
+            //         console.log("retry query hash:",res["data"]["data"]["txHash"]," exec success ");
+            //         break;
+            //     }
+            //     sleep.msleep(1000);
+            // }
         }
 
     } catch (e) {
@@ -141,7 +142,54 @@ async function deadlineOfOrderMaker(nonce_increase) {
 /**
  * 开仓
  */
+// async function openPositionWithPrice() {
+//     try {
+//         // ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
+//         const ordermaker = config.ACCOUNT_ADDRESS;
+//         const makerPrivateKey = "0x" + config.PRIVATE_KEY
+//         let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS).call();
+//         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
+//         let openOrder = new OpenOrder(
+//           utils.formatBytes32String(config.symbol),
+//           config.handleAmount,
+//           1, //ORDER_DIRECTION
+//           config.ACCEPTABLE_PRICE,
+//           config.approveUsdt.toString() + e18str,
+//           config.PARAENT_ADDRESS,
+//           config.WITH_DISCOUNT,
+//           deadline,
+//           ordermaker,
+//           config.GAS_LEVEL
+//         );
+//         let args = await openOrder.toArgs(FUTURE_ADDRESS, makerPrivateKey, web3_rops, config.CHAIN_ID);
+//         console.log("args:",args);
+//         const params = {
+//             "symbol": args[0],
+//             "amount": args[1],
+//             "direction": args[2],
+//             "acceptablePrice": args[3],
+//             "approvedUsdt": args[4],
+//             "parent": args[5],
+//             "withDiscount": args[6],
+//             "deadline": args[7],
+//             "maker": args[8],
+//             "gasLevel": args[9],
+//             "r": args[11],
+//             "s": args[12],
+//             "v": args[10]
+//         };
+//         await sendRpcTrx(config.OpenPositionUrl, params);
+//     } catch (error) {
+//         console.log("openPositionWithPrice error:",error);
+//     }
+// }
+
+
+/**
+ * 开仓
+ */
 async function openLongPositionWithPrice() {
+    console.log("======= open long position========");
     try {
         // ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
         const ordermaker = config.ACCOUNT_ADDRESS;
@@ -150,7 +198,7 @@ async function openLongPositionWithPrice() {
         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
         let openOrder = new OpenOrder(
           utils.formatBytes32String(config.symbol),
-          config.handleAmount,
+          config.handleLongAmount,
           1, //ORDER_DIRECTION
           config.ACCEPTABLE_PRICE,
           config.approveUsdt.toString() + e18str,
@@ -188,6 +236,7 @@ async function openLongPositionWithPrice() {
  * 开仓
  */
 async function openShortPositionWithPrice() {
+    console.log("======= open short position========");
     try {
         //ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
         const ordermaker = config.ACCOUNT_ADDRESS;
@@ -196,7 +245,7 @@ async function openShortPositionWithPrice() {
         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
         let openOrder = new OpenOrder(
           utils.formatBytes32String(config.symbol),
-          config.handleAmount,
+          config.handleShortAmount,
           -1,
           config.ACCEPTABLE_PRICE,
           config.approveUsdt.toString() + e18str,
@@ -232,7 +281,7 @@ async function openShortPositionWithPrice() {
 /**
  * 关仓
  */
-async function closePositionWithPrice(){
+async function closeLongPositionWithPrice(){
     try {
         const ordermaker = config.ACCOUNT_ADDRESS;
         const makerPrivateKey = "0x" + config.PRIVATE_KEY
@@ -240,14 +289,14 @@ async function closePositionWithPrice(){
         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
         let closeOrder = new CloseOrder(
             utils.formatBytes32String(config.symbol),
-            config.handleAmount,
+            config.handleLongAmount,
             0,
             deadline,
             ordermaker,
             config.GAS_LEVEL
         );
         let args = await closeOrder.toArgs(FUTURE_ADDRESS, makerPrivateKey, web3_rops, config.CHAIN_ID);
-        console.log("args:",args);
+        console.log("=== Close LongPosition args:",args);
         const params = {
             "acceptablePrice": args[2],
             "amount": args[1],
@@ -260,6 +309,30 @@ async function closePositionWithPrice(){
             "v": args[6]
         };
         await sendRpcTrx(config.ClosePositionUrl, params);
+
+        let closeShortOrder = new CloseOrder(
+            utils.formatBytes32String(config.symbol),
+            config.handleShortAmount,
+            0,
+            deadline,
+            ordermaker,
+            config.GAS_LEVEL
+        );
+        let args1 = await closeShortOrder.toArgs(FUTURE_ADDRESS, makerPrivateKey, web3_rops, config.CHAIN_ID);
+        console.log("=== Close ShortPosition args:",args1);
+        const params1 = {
+            "acceptablePrice": args1[2],
+            "amount": args1[1],
+            "deadline": args1[3],
+            "gasLevel": args1[5],
+            "maker": args1[4],
+            "r": args1[7],
+            "s": args1[8],
+            "symbol": args1[0],
+            "v": args1[6]
+        };
+        await sendRpcTrx(config.ClosePositionUrl, params1);
+
     } catch (error) {
         console.log("closePositionWithPrice error:",error);
     }
@@ -308,24 +381,27 @@ async function dFutureDemo() {
         //第一次开仓需要approve操作
         await generateApproveTx();
         //查询开仓config.handleAmount手手续费
-        let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleAmount ,1, true).call();
+        let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
         console.log("account:",config.ACCOUNT_ADDRESS,"queryPositionFeeAndRatio:",feeAndRatio);
 
         //开仓 多头
         await openLongPositionWithPrice();
+        
+        let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
+        console.log("account:",config.ACCOUNT_ADDRESS,"queryPositionFeeAndRatio:",feeAndRatio);
         await openShortPositionWithPrice();
         sleep.msleep(3000);
         //获取用户持仓
-        let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
-        console.log("account:",config.ACCOUNT_ADDRESS,"symbol:",config.symbol,"queryPosition:",PositionInfo);
+        //let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
+        //console.log("account:",config.ACCOUNT_ADDRESS,"symbol:",config.symbol,"queryPosition:",PositionInfo);
 
         //获取账户信息
-        let HolderInfo = await future_contract.methods.queryHolderInfo(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
-        console.log("account:",config.ACCOUNT_ADDRESS,"symbol:",config.symbol,"HolderInfo:",HolderInfo);
+        //let HolderInfo = await future_contract.methods.queryHolderInfo(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
+        //console.log("account:",config.ACCOUNT_ADDRESS,"symbol:",config.symbol,"HolderInfo:",HolderInfo);
 
         //查询持仓利息
-        let interestRatio = await future_contract.methods.queryInterestRatio(symbol(config.symbol), 0).call();
-        console.log("account:",config.ACCOUNT_ADDRESS,"queryInterestRatio:",interestRatio);
+        //let interestRatio = await future_contract.methods.queryInterestRatio(symbol(config.symbol), 0).call();
+        //console.log("account:",config.ACCOUNT_ADDRESS,"queryInterestRatio:",interestRatio);
 
         //关仓
         await closePositionWithPrice();
