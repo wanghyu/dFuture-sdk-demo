@@ -448,8 +448,8 @@ async function dFutureDemo() {
         // console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
 
         await generateApproveTxForShort();
-        let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount , -1, true).call();
-        console.log("account:",config.ACCOUNT_ADDRESS_FOR_SHORT,"queryLongPositionFeeAndRatio:",feeAndRatio);
+        let feeAndRatioForShort = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount , -1, true).call();
+        console.log("account:",config.ACCOUNT_ADDRESS_FOR_SHORT,"queryLongPositionFeeAndRatio:",feeAndRatioForShort);
 
         //await openShortPositionWithPrice();
         //sleep.msleep(8000);
