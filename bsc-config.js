@@ -1,7 +1,7 @@
 class config {}
 config.symbol = "btc"  //开仓的标的
 config.handleAmount = 1; //开仓的手数，即btc最小为1，eth最小为10
-config.approveUsdt = 10 //开仓每笔花费的U
+config.approveUsdt = 100 //开仓每笔花费的U
 config.tradeScheduleRobot = "10 */1 * * * *";
 config.isImmediateClose = false; //开完仓位是否立即关仓
 config.GAS_PRICE_MULTIPLE = 1;
@@ -18,8 +18,8 @@ config.OPEN_POSITION_FAIL_GAS_PRICE = 21*1e9
 config.FUTURE_ADDRESS = "0xc67eC5cbcE3E9aB546CF6077Dd2ad519887737BA"
 config.USDT_ADDRESS = "0x55d398326f99059ff775485246999027b3197955"
 config.PARAENT_ADDRESS = '0xAfc3DAFBB4296Ac80352685E334B95bf6F496e7F'
-config.ACCOUNT_ADDRESS = "***" //账号地址
-config.PRIVATE_KEY = "***" //私钥开头不需要加0x
+config.ACCOUNT_ADDRESS = "0x276c4bD1f6659FBBb626f9E27AE626576fD87AE0" //账号地址
+config.PRIVATE_KEY = "" //私钥开头不需要加0x
 config.PROVIDER_URL = "https://bsc-dataseed.binance.org/"
 
 module.exports = config

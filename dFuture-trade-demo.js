@@ -141,9 +141,9 @@ async function deadlineOfOrderMaker(nonce_increase) {
 /**
  * 开仓
  */
-async function openPositionWithPrice() {
+async function openLongPositionWithPrice() {
     try {
-        ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
+        // ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
         const ordermaker = config.ACCOUNT_ADDRESS;
         const makerPrivateKey = "0x" + config.PRIVATE_KEY
         let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS).call();
@@ -151,7 +151,53 @@ async function openPositionWithPrice() {
         let openOrder = new OpenOrder(
           utils.formatBytes32String(config.symbol),
           config.handleAmount,
-          ORDER_DIRECTION,
+          1, //ORDER_DIRECTION
+          config.ACCEPTABLE_PRICE,
+          config.approveUsdt.toString() + e18str,
+          config.PARAENT_ADDRESS,
+          config.WITH_DISCOUNT,
+          deadline,
+          ordermaker,
+          config.GAS_LEVEL
+        );
+        let args = await openOrder.toArgs(FUTURE_ADDRESS, makerPrivateKey, web3_rops, config.CHAIN_ID);
+        console.log("args:",args);
+        const params = {
+            "symbol": args[0],
+            "amount": args[1],
+            "direction": args[2],
+            "acceptablePrice": args[3],
+            "approvedUsdt": args[4],
+            "parent": args[5],
+            "withDiscount": args[6],
+            "deadline": args[7],
+            "maker": args[8],
+            "gasLevel": args[9],
+            "r": args[11],
+            "s": args[12],
+            "v": args[10]
+        };
+        await sendRpcTrx(config.OpenPositionUrl, params);
+    } catch (error) {
+        console.log("openPositionWithPrice error:",error);
+    }
+}
+
+
+/**
+ * 开仓
+ */
+async function openShortPositionWithPrice() {
+    try {
+        //ORDER_DIRECTION = ORDER_DIRECTION == 1 ? -1:1;
+        const ordermaker = config.ACCOUNT_ADDRESS;
+        const makerPrivateKey = "0x" + config.PRIVATE_KEY
+        let nonce  = await future_contract.methods.queryNonce(config.ACCOUNT_ADDRESS).call();
+        let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
+        let openOrder = new OpenOrder(
+          utils.formatBytes32String(config.symbol),
+          config.handleAmount,
+          -1,
           config.ACCEPTABLE_PRICE,
           config.approveUsdt.toString() + e18str,
           config.PARAENT_ADDRESS,
@@ -251,6 +297,7 @@ async function generateApproveTx() {
    return false;
 }
 
+
  /**
  * 程序入口
  * @returns {Promise<void>}
@@ -264,8 +311,9 @@ async function dFutureDemo() {
         let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleAmount ,1, true).call();
         console.log("account:",config.ACCOUNT_ADDRESS,"queryPositionFeeAndRatio:",feeAndRatio);
 
-        //开仓
-        await openPositionWithPrice();
+        //开仓 多头
+        await openLongPositionWithPrice();
+        await openShortPositionWithPrice();
         sleep.msleep(3000);
         //获取用户持仓
         let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
