@@ -289,7 +289,7 @@ async function closePositionWithPrice(){
         let deadline = await deadlineOfOrderMaker( Number(nonce) + 1 );
         let closeOrder = new CloseOrder(
             utils.formatBytes32String(config.symbol),
-            config.handleLongAmount,
+            config.handleShortAmount - config.handleLongAmount,
             0,
             deadline,
             ordermaker,
@@ -310,28 +310,6 @@ async function closePositionWithPrice(){
         };
         await sendRpcTrx(config.ClosePositionUrl, params);
 
-        let closeShortOrder = new CloseOrder(
-            utils.formatBytes32String(config.symbol),
-            config.handleShortAmount,
-            0,
-            deadline,
-            ordermaker,
-            config.GAS_LEVEL
-        );
-        let args1 = await closeShortOrder.toArgs(FUTURE_ADDRESS, makerPrivateKey, web3_rops, config.CHAIN_ID);
-        console.log("=== Close ShortPosition args:",args1);
-        const params1 = {
-            "acceptablePrice": args1[2],
-            "amount": args1[1],
-            "deadline": args1[3],
-            "gasLevel": args1[5],
-            "maker": args1[4],
-            "r": args1[7],
-            "s": args1[8],
-            "symbol": args1[0],
-            "v": args1[6]
-        };
-        await sendRpcTrx(config.ClosePositionUrl, params1);
 
     } catch (error) {
         console.log("closePositionWithPrice error:",error);
@@ -390,7 +368,7 @@ async function dFutureDemo() {
         let feeAndRatio1 = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
         console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
         await openShortPositionWithPrice();
-        sleep.msleep(3000);
+        sleep.msleep(8000);
         //获取用户持仓
         //let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
         //console.log("account:",config.ACCOUNT_ADDRESS,"symbol:",config.symbol,"queryPosition:",PositionInfo);
