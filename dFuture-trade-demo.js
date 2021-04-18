@@ -364,10 +364,14 @@ async function dFutureDemo() {
 
         //开仓 多头
         await openLongPositionWithPrice();
+
+        sleep.msleep(1000);
         
         // let feeAndRatio1 = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
         // console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
-        //await openShortPositionWithPrice();
+
+        await generateApproveTx();
+        await openShortPositionWithPrice();
         sleep.msleep(8000);
         //获取用户持仓
         //let PositionInfo = await future_contract.methods.queryPosition(config.ACCOUNT_ADDRESS,symbol(config.symbol)).call();
