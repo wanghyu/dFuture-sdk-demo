@@ -382,13 +382,13 @@ async function dFutureDemo() {
         await generateApproveTx();
         //查询开仓config.handleAmount手手续费
         let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleLongAmount ,1, true).call();
-        console.log("account:",config.ACCOUNT_ADDRESS,"queryPositionFeeAndRatio:",feeAndRatio);
+        console.log("account:",config.ACCOUNT_ADDRESS,"queryLongPositionFeeAndRatio:",feeAndRatio);
 
         //开仓 多头
         await openLongPositionWithPrice();
         
-        let feeAndRatio = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
-        console.log("account:",config.ACCOUNT_ADDRESS,"queryPositionFeeAndRatio:",feeAndRatio);
+        let feeAndRatio1 = await future_contract.methods.queryPositionFeeAndRatio(symbol(config.symbol),config.handleShortAmount ,1, true).call();
+        console.log("account:",config.ACCOUNT_ADDRESS,"queryShortPositionFeeAndRatio:",feeAndRatio1);
         await openShortPositionWithPrice();
         sleep.msleep(3000);
         //获取用户持仓
