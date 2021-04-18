@@ -387,9 +387,9 @@ async function generateApproveTxForLong() {
       const tx = new EthereumTx(txParams)
       tx.sign(Buffer.from(PRIVATE_KEY_FOR_LONG.slice(2), 'hex'))
       const serializedTx = await tx.serialize()
-    //   await web3_rops.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).once('transactionHash', function(hash){
-    //     console.log("generateApproveTx transaction exec success, hash:",hash," current_nonce:",current_nonce);
-    // })
+      await web3_rops.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).once('transactionHash', function(hash){
+        console.log("generateApproveTx transaction exec success, hash:",hash," current_nonce:",current_nonce);
+    })
       return true;
    } catch (error) {
       console.log("sendSignedTransaction generateApproveTx error:",error);
@@ -415,9 +415,9 @@ async function generateApproveTxForShort() {
        const tx = new EthereumTx(txParams)
        tx.sign(Buffer.from(PRIVATE_KEY_FOR_SHORT.slice(2), 'hex'))
        const serializedTx = await tx.serialize()
-    //    await web3_rops.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).once('transactionHash', function(hash){
-    //      console.log("generateApproveTx transaction exec success, hash:",hash," current_nonce:",current_nonce);
-    //  })
+       await web3_rops.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).once('transactionHash', function(hash){
+         console.log("generateApproveTx transaction exec success, hash:",hash," current_nonce:",current_nonce);
+     })
        return true;
     } catch (error) {
        console.log("sendSignedTransaction generateApproveTx error:",error);
