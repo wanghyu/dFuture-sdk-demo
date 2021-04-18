@@ -281,7 +281,7 @@ async function openShortPositionWithPrice() {
 /**
  * 关仓
  */
-async function closeLongPositionWithPrice(){
+async function closePositionWithPrice(){
     try {
         const ordermaker = config.ACCOUNT_ADDRESS;
         const makerPrivateKey = "0x" + config.PRIVATE_KEY
