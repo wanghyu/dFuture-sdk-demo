@@ -53,7 +53,7 @@ const account_for_short = web3_rops.eth.accounts.privateKeyToAccount(PRIVATE_KEY
 
 //私钥对应的账号地地址
 const account_address_for_long = account_for_long.address
-const account_address_for_short = account_address_for_short.address;
+const account_address_for_short = account_for_short.address;
 
 let last_openposition_status = true;
 let nonce_number = 0;
